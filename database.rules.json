@@ -1,0 +1,35 @@
+{
+  "rules": {
+    ".write": "false",
+    "administrators": {
+      // No one can list administrators
+      ".read": "data.hasChild(auth.uid)",
+      "$uid": {
+        // Authenticated user can check if they are in this group
+        ".read": "$uid === auth.uid",
+        // Administrators can write
+        ".write": "data.parent().child(auth.uid).val() === true",
+        // Allow only add or delete, no duplicates
+        ".validate": "!data.exists() || !newData.exists() || newData.isBoolean()"
+      }
+    },
+    "content": {
+      ".read": "auth !== null",
+      "$uid": {
+        ".write": "root.child('administrators').hasChild(auth.uid) && root.child('administrators').child(auth.uid).val() === true && (data.child('owner').val() === auth.uid || newData.child('owner').val() === auth.uid)",
+        ".validate": "!data.exists() || !newData.exists()",
+        "owner": {
+          ".validate": "newData.val() === auth.uid || data.val() === auth.uid"
+        },
+        "type": {
+          ".validate": "newData.val() === 'text' || newData.val() === 'link' || newData.val() === 'picture' "
+        }
+      }
+    },
+    "stats": {
+      ".read": "true",
+      ".write": "true"
+    }
+
+  }
+}
